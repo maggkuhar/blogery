@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Внешний трафик</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; color: #222; }
+        header { background: #111; color: #fff; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+        header h1 { font-size: 20px; }
+        .tabs { background: #222; display: flex; }
+        .tabs a { padding: 12px 28px; color: #aaa; text-decoration: none; font-size: 14px; border-bottom: 3px solid transparent; }
+        .tabs a.active { color: #fff; border-bottom: 3px solid #27ae60; }
+        .tabs a:hover { color: #fff; }
+        .btn { display: inline-block; padding: 8px 18px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; text-decoration: none; }
+        .btn-green { background: #27ae60; color: #fff; }
+        .btn-red { background: #e74c3c; color: #fff; }
+        .btn-gray { background: #888; color: #fff; }
+        .btn-yellow { background: #f39c12; color: #fff; }
+        .btn-sm { padding: 5px 12px; font-size: 13px; }
+
+        /* Подвкладки */
+        .subtabs { background: #f0f0f0; display: flex; border-bottom: 1px solid #ddd; padding: 0 24px; }
+        .subtabs button { padding: 12px 24px; background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; font-size: 14px; color: #666; }
+        .subtabs button.active { color: #111; border-bottom: 3px solid #27ae60; font-weight: bold; }
+        .subtabs button:hover { color: #111; }
+        .section { display: none; padding: 24px; }
+        .section.active { display: block; }
+
+        /* Карточки соцсетей */
+        .soc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
+        .soc-card { background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+        .soc-card h2 { font-size: 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        .soc-card > p { font-size: 13px; color: #777; margin-bottom: 12px; }
+        .bot-status-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 10px 14px; border-radius: 8px; background: #f5f5f5; }
+        .bot-status-bar .status-val { font-size: 13px; font-weight: bold; }
+        .status-on { color: #27ae60; }
+        .status-off { color: #e74c3c; }
+        .toggle-btn { padding: 6px 18px; border-radius: 20px; border: none; cursor: pointer; font-size: 13px; font-weight: bold; }
+        .toggle-on { background: #e74c3c; color: #fff; }
+        .toggle-off { background: #27ae60; color: #fff; }
+
+        /* Список ботов в карточке соцсети */
+        .bots-in-card { margin-bottom: 14px; }
+        .bots-in-card-title { font-size: 11px; font-weight: bold; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+        .bot-row { display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: #f8f8f8; border-radius: 6px; font-size: 13px; margin-bottom: 4px; }
+        .bot-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .bot-dot-активен { background: #27ae60; }
+        .bot-dot-отключён { background: #aaa; }
+        .bot-dot-заблокирован { background: #e74c3c; }
+        .bot-dot-прогрев { background: #f39c12; }
+        .bot-row-name { font-weight: bold; flex: 1; }
+        .bot-row-role { font-size: 11px; color: #888; }
+        .bot-row-status { font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: bold; }
+        .no-bots-hint { font-size: 12px; color: #bbb; padding: 6px 0; }
+
+        /* Кнопки заданий */
+        .soc-card-actions { display: flex; flex-direction: column; gap: 8px; }
+        .task-btn { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; border: 1px solid #e0e0e0; background: #fafafa; cursor: pointer; font-size: 14px; text-align: left; width: 100%; transition: background 0.15s; }
+        .task-btn:hover { background: #f0f0f0; }
+        .task-btn .icon { font-size: 18px; width: 26px; text-align: center; }
+        .task-btn .info { flex: 1; }
+        .task-btn .label { font-weight: bold; color: #222; }
+        .task-btn .desc { font-size: 12px; color: #999; margin-top: 2px; }
+        .badge-soon { font-size: 11px; background: #fff3cd; color: #856404; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+        .soc-card-disabled .task-btn { opacity: 0.4; pointer-events: none; }
+
+        /* Управление ботами */
+        .manage-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .stats { color: #555; font-size: 14px; }
+        .bots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
+        .bot-card { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); border-left: 4px solid #ddd; }
+        .bot-card.status-активен { border-left-color: #27ae60; }
+        .bot-card.status-заблокирован { border-left-color: #e74c3c; }
+        .bot-card.status-прогрев { border-left-color: #f39c12; }
+        .bot-card.status-отключён { border-left-color: #aaa; }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .card-title { font-size: 16px; font-weight: bold; }
+        .card-meta { font-size: 12px; color: #888; margin-top: 3px; }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .badge-разведчик { background: #d1ecf1; color: #0c5460; }
+        .badge-контакт { background: #fff3cd; color: #856404; }
+        .badge-активен { background: #d4edda; color: #155724; }
+        .badge-отключён { background: #eee; color: #555; }
+        .badge-заблокирован { background: #f8d7da; color: #721c24; }
+        .badge-прогрев { background: #fff3cd; color: #856404; }
+        .card-info { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; font-size: 13px; }
+        .info-item { background: #f8f8f8; border-radius: 6px; padding: 8px 10px; }
+        .info-label { color: #888; font-size: 11px; margin-bottom: 2px; }
+        .info-value { font-weight: bold; color: #222; }
+        .ban-block { background: #fff3f3; border: 1px solid #f5c6cb; border-radius: 6px; padding: 8px 10px; margin-bottom: 12px; font-size: 12px; color: #721c24; }
+        .card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .platform-group { margin-bottom: 32px; }
+        .platform-title { font-size: 15px; font-weight: bold; color: #333; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #eee; }
+        .platform-count { font-size: 12px; color: #888; font-weight: normal; }
+        .empty { text-align: center; padding: 60px; color: #aaa; }
+
+        /* Модалки */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; }
+        .modal { background: #fff; border-radius: 12px; padding: 28px; max-width: 480px; width: 90%; margin: 80px auto; }
+        .modal h3 { margin-bottom: 16px; font-size: 18px; }
+        .modal input, .modal select, .modal textarea { width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; margin-bottom: 12px; }
+        .modal textarea { height: 80px; resize: vertical; }
+        .modal-actions { display: flex; gap: 10px; margin-top: 8px; }
+        label { display: block; font-size: 13px; color: #555; margin-bottom: 4px; }
+    </style>
+</head>
+<body>
+{% include '_nav.html' %}
+
+<!-- ВКЛАДКА 1: Задания по соцсетям -->
+<div class="section active" id="tab-tasks">
+    <div class="soc-grid">
+
+        {% set soc_platforms = [
+            ('Instagram', '📸', 'instagram', 'Работает как реальный пользователь в Instagram'),
+            ('ВКонтакте', '💙', 'vk', 'Работает через официальный API ВКонтакте'),
+            ('TikTok', '🎵', 'tiktok', 'Работает как реальный пользователь в TikTok'),
+            ('YouTube', '▶️', 'youtube', 'Работает через Google API'),
+            ('Одноклассники', '🎓', 'ok', 'Работает как реальный пользователь в Одноклассниках')
+        ] %}
+
+        {% for platform_name, icon, slug, desc in soc_platforms %}
+        {% set p_bots = bots|selectattr('platform','eq',platform_name)|list %}
+        <div class="soc-card" id="card-{{ slug }}">
+            <h2>{{ icon }} {{ platform_name }}</h2>
+
+            <div class="bot-status-bar">
+                <div>
+                    <div style="font-size:12px;color:#777;">Статус</div>
+                    <div class="status-val status-off" id="status-{{ slug }}">● Отключён</div>
+                </div>
+                <button class="toggle-btn toggle-off" id="btn-{{ slug }}" onclick="toggleBot('{{ slug }}')">Подключить</button>
+            </div>
+
+            <p>{{ desc }}</p>
+
+            <!-- Список ботов этой платформы -->
+            <div class="bots-in-card">
+                <div class="bots-in-card-title">Боты платформы ({{ p_bots|length }})</div>
+                {% if p_bots %}
+                    {% for b in p_bots %}
+                    <div class="bot-row">
+                        <span class="bot-dot bot-dot-{{ b.status }}"></span>
+                        <span class="bot-row-name">{{ b.name }}</span>
+                        <span class="bot-row-role">{{ b.role }}</span>
+                        <span class="badge badge-{{ b.status }} bot-row-status">{{ b.status }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-bots-hint">Нет ботов — <a href="/bots/add">добавить</a></div>
+                {% endif %}
+            </div>
+
+            <div class="soc-card-actions soc-card-disabled" id="actions-{{ slug }}">
+                <button class="task-btn" onclick="openModal('search', '{{ platform_name }}')"><span class="icon">🔍</span><div class="info"><div class="label">Найти блогеров</div><div class="desc">Поиск по теме, хэштегам, подписчикам</div></div><span class="badge-soon">Скоро</span></button>
+                <button class="task-btn" onclick="openModal('analyze', '{{ platform_name }}')"><span class="icon">📊</span><div class="info"><div class="label">Анализ профиля</div><div class="desc">Охват, активность, тематика</div></div><span class="badge-soon">Скоро</span></button>
+                <button class="task-btn" onclick="openModal('message', '{{ platform_name }}')"><span class="icon">✉️</span><div class="info"><div class="label">Написать сообщение</div><div class="desc">Личное сообщение блогеру</div></div><span class="badge-soon">Скоро</span></button>
+                <button class="task-btn" onclick="openModal('like', '{{ platform_name }}')"><span class="icon">❤️</span><div class="info"><div class="label">Поставить лайк</div><div class="desc">Лайк на последние посты</div></div><span class="badge-soon">Скоро</span></button>
+                <button class="task-btn" onclick="openModal('comment', '{{ platform_name }}')"><span class="icon">💬</span><div class="info"><div class="label">Написать комментарий</div><div class="desc">Комментарий под постом</div></div><span class="badge-soon">Скоро</span></button>
+                <button class="task-btn" onclick="openModal('follow', '{{ platform_name }}')"><span class="icon">➕</span><div class="info"><div class="label">Подписаться</div><div class="desc">Подписка на аккаунт</div></div><span class="badge-soon">Скоро</span></button>
+                {% if platform_name == 'Instagram' %}
+                <button class="task-btn" onclick="openModal('stories', '{{ platform_name }}')"><span class="icon">👁</span><div class="info"><div class="label">Посмотреть stories</div><div class="desc">Блогер увидит твой просмотр</div></div><span class="badge-soon">Скоро</span></button>
+                {% endif %}
+                <button class="task-btn" onclick="openModal('stats', '{{ platform_name }}')"><span class="icon">📈</span><div class="info"><div class="label">Отслеживать статистику</div><div class="desc">Рост подписчиков, активность</div></div><span class="badge-soon">Скоро</span></button>
+            </div>
+        </div>
+        {% endfor %}
+
+    </div>
+</div>
+
+<!-- ВКЛАДКА 2: Управление ботами -->
+<div class="section" id="tab-manage">
+    <div class="manage-header">
+        <div class="stats">Ботов: {{ bots|length }}{% if bots %} &nbsp;|&nbsp; Активных: {{ bots|selectattr('status','eq','активен')|list|length }} &nbsp;|&nbsp; Заблокировано: {{ bots|selectattr('status','eq','заблокирован')|list|length }}{% endif %}</div>
+        <a href="/bots/add" class="btn btn-green">+ Добавить бота</a>
+    </div>
+
+    {% if bots %}
+        {% set platforms_list = bots|map(attribute='platform')|unique|list %}
+        {% for platform in platforms_list %}
+            {% set platform_bots = bots|selectattr('platform','eq',platform)|list %}
+            <div class="platform-group">
+                <div class="platform-title">{{ platform }} <span class="platform-count">{{ platform_bots|length }} бот(ов)</span></div>
+                <div class="bots-grid">
+                {% for bot in platform_bots %}
+                <div class="bot-card status-{{ bot.status }}">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">{{ bot.name }}</div>
+                            <div class="card-meta">{{ bot.platform }} &nbsp;·&nbsp; {{ bot.created_at[:10] }}</div>
+                        </div>
+                        <div style="display:flex;gap:6px;flex-direction:column;align-items:flex-end;">
+                            <span class="badge badge-{{ bot.role }}">{{ bot.role }}</span>
+                            <span class="badge badge-{{ bot.status }}">{{ bot.status }}</span>
+                        </div>
+                    </div>
+                    {% if bot.ban_reason %}
+                    <div class="ban-block">⛔ Причина блокировки: {{ bot.ban_reason }} (банов: {{ bot.ban_count }})</div>
+                    {% endif %}
+                    <div class="card-info">
+                        <div class="info-item"><div class="info-label">Лимит в день</div><div class="info-value">{{ bot.daily_limit }} действий</div></div>
+                        <div class="info-item"><div class="info-label">Задержка</div><div class="info-value">{{ bot.delay_min }}–{{ bot.delay_max }} сек</div></div>
+                        <div class="info-item"><div class="info-label">Расписание</div><div class="info-value">{{ bot.schedule }}</div></div>
+                        <div class="info-item"><div class="info-label">Аккаунт</div><div class="info-value">{{ bot.account or '—' }}</div></div>
+                    </div>
+                    {% if bot.notes %}<div style="font-size:12px;color:#777;margin-bottom:12px;">{{ bot.notes }}</div>{% endif %}
+                    <div class="card-actions">
+                        <form method="post" action="/bots/toggle/{{ bot.id }}">
+                            {% if bot.status == 'активен' %}
+                            <button type="submit" class="btn btn-yellow btn-sm">⏸ Отключить</button>
+                            {% else %}
+                            <button type="submit" class="btn btn-green btn-sm">▶ Включить</button>
+                            {% endif %}
+                        </form>
+                        <a href="/bots/edit/{{ bot.id }}" class="btn btn-gray btn-sm">✏️ Настройки</a>
+                        <button class="btn btn-red btn-sm" onclick="openBan({{ bot.id }}, '{{ bot.name }}')">⛔ Бан</button>
+                        <form method="post" action="/bots/delete/{{ bot.id }}" onsubmit="return confirm('Удалить бота {{ bot.name }}?')">
+                            <button type="submit" class="btn btn-red btn-sm">🗑</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+    <div class="empty">Ботов пока нет. <a href="/bots/add">Добавить первого</a></div>
+    {% endif %}
+</div>
+
+<!-- Модалка задания -->
+<div class="modal-overlay" id="modal" onclick="if(event.target.id==='modal')document.getElementById('modal').style.display='none'">
+    <div class="modal">
+        <h3 id="modal-title">Задание боту</h3>
+        <div id="modal-body"></div>
+        <div class="modal-actions">
+            <button class="btn btn-green" onclick="submitTask()">Отправить задание</button>
+            <button class="btn btn-gray" onclick="document.getElementById('modal').style.display='none'">Отмена</button>
+        </div>
+    </div>
+</div>
+
+<!-- Модалка бана -->
+<div class="modal-overlay" id="ban-modal" onclick="if(event.target.id==='ban-modal')closeBan()">
+    <div class="modal">
+        <h3 id="ban-title">Зафиксировать блокировку</h3>
+        <form method="post" id="ban-form" action="">
+            <label>Причина блокировки</label>
+            <textarea name="reason" placeholder="Например: слишком быстрые действия..."></textarea>
+            <div class="modal-actions">
+                <button type="submit" class="btn btn-red">Зафиксировать</button>
+                <button type="button" class="btn btn-gray" onclick="closeBan()">Отмена</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function switchTab(tab, btn) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.subtabs button').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    btn.classList.add('active');
+}
+
+const botState = {};
+function toggleBot(bot) {
+    botState[bot] = !botState[bot];
+    const on = botState[bot];
+    document.getElementById('status-' + bot).textContent = on ? '● Подключён' : '● Отключён';
+    document.getElementById('status-' + bot).className = 'status-val ' + (on ? 'status-on' : 'status-off');
+    document.getElementById('btn-' + bot).textContent = on ? 'Отключить' : 'Подключить';
+    document.getElementById('btn-' + bot).className = 'toggle-btn ' + (on ? 'toggle-on' : 'toggle-off');
+    document.getElementById('actions-' + bot).className = 'soc-card-actions' + (on ? '' : ' soc-card-disabled');
+}
+
+const TASKS = {
+    search: { label: "Найти блогеров", fields: `<label>Тема / ключевые слова</label><input type="text" id="f1" placeholder="Например: фитнес, похудение"><label>Мин. подписчиков</label><input type="number" id="f2" placeholder="10000"><label>Макс. подписчиков</label><input type="number" id="f3" placeholder="500000"><label>Количество результатов</label><input type="number" id="f4" value="20">` },
+    analyze: { label: "Анализ профиля", fields: `<label>Ссылка на профиль</label><input type="url" id="f1" placeholder="https://...">` },
+    message: { label: "Написать сообщение", fields: `<label>Ссылка на профиль</label><input type="url" id="f1" placeholder="https://..."><label>Текст сообщения</label><textarea id="f2" placeholder="Привет! Хотим предложить сотрудничество..."></textarea>` },
+    like: { label: "Поставить лайк", fields: `<label>Ссылка на профиль</label><input type="url" id="f1" placeholder="https://..."><label>Количество последних постов</label><input type="number" id="f2" value="3">` },
+    comment: { label: "Написать комментарий", fields: `<label>Ссылка на пост</label><input type="url" id="f1" placeholder="https://..."><label>Текст комментария</label><textarea id="f2" placeholder="Отличный контент!"></textarea>` },
+    follow: { label: "Подписаться", fields: `<label>Ссылка на профиль</label><input type="url" id="f1" placeholder="https://...">` },
+    stories: { label: "Посмотреть stories", fields: `<label>Ссылка на профиль</label><input type="url" id="f1" placeholder="https://...">` },
+    stats: { label: "Отслеживать статистику", fields: `<label>Ссылка на профиль</label><input type="url" id="f1" placeholder="https://..."><label>Период (дней)</label><input type="number" id="f2" value="7">` }
+};
+
+function openModal(task, platform) {
+    const t = TASKS[task];
+    document.getElementById('modal-title').textContent = t.label + ' — ' + platform;
+    document.getElementById('modal-body').innerHTML = t.fields;
+    document.getElementById('modal').style.display = 'block';
+}
+function submitTask() {
+    alert('Функция в разработке. Бот получит задание когда будет готов.');
+    document.getElementById('modal').style.display = 'none';
+}
+
+function openBan(id, name) {
+    document.getElementById('ban-title').textContent = 'Бан: ' + name;
+    document.getElementById('ban-form').action = '/bots/ban/' + id;
+    document.getElementById('ban-modal').style.display = 'block';
+}
+function closeBan() {
+    document.getElementById('ban-modal').style.display = 'none';
+}
+</script>
+</body>
+</html>

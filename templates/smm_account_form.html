@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Внешний трафик — SMM</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; color: #222; }
+        header { background: #111; color: #fff; padding: 16px 24px; }
+        header h1 { font-size: 20px; }
+        .tabs { background: #222; display: flex; }
+        .tabs a { padding: 12px 28px; color: #aaa; text-decoration: none; font-size: 14px; border-bottom: 3px solid transparent; }
+        .tabs a.active { color: #fff; border-bottom: 3px solid #9b59b6; }
+        .tabs a:hover { color: #fff; }
+        .subtabs { background: #f0f0f0; display: flex; border-bottom: 1px solid #ddd; padding: 0 24px; }
+        .subtabs a { padding: 11px 22px; text-decoration: none; font-size: 14px; color: #666; border-bottom: 3px solid transparent; }
+        .subtabs a.active { color: #9b59b6; border-bottom: 3px solid #9b59b6; font-weight: bold; }
+        .form-wrap { max-width: 580px; margin: 32px auto; background: #fff; border-radius: 10px; padding: 32px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+        .form-wrap h2 { font-size: 16px; margin-bottom: 24px; }
+        .field { margin-bottom: 16px; }
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        label { display: block; font-size: 13px; color: #555; margin-bottom: 6px; }
+        input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+        textarea { height: 90px; resize: vertical; }
+        .hint { font-size: 11px; color: #aaa; margin-top: 4px; }
+        .actions { display: flex; gap: 12px; margin-top: 24px; }
+        .btn { padding: 10px 24px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; text-decoration: none; display: inline-block; }
+        .btn-purple { background: #9b59b6; color: #fff; }
+        .btn-gray { background: #888; color: #fff; }
+    </style>
+</head>
+<body>
+{% include '_nav.html' %}
+
+<div class="form-wrap">
+    <h2>{{ action }}</h2>
+    <form method="post">
+        <div class="field">
+            <label>Название аккаунта</label>
+            <input type="text" name="name" value="{{ item.name if item else '' }}" placeholder="Например: Мой бренд — Instagram" required>
+        </div>
+        <div class="row">
+            <div class="field">
+                <label>Платформа</label>
+                <select name="platform">
+                    {% for p in platforms %}
+                    <option value="{{ p }}" {% if item and item.platform == p %}selected{% endif %}>{{ p }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="field">
+                <label>Статус</label>
+                <select name="status">
+                    {% for s in smm_statuses %}
+                    <option value="{{ s }}" {% if item and item.status == s %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="field">
+                <label>Логин / @username</label>
+                <input type="text" name="login" value="{{ item.login if item else '' }}" placeholder="@mybrand">
+            </div>
+            <div class="field">
+                <label>Подписчиков</label>
+                <input type="number" name="followers" value="{{ item.followers if item else 0 }}">
+            </div>
+        </div>
+        <div class="field">
+            <label>Ссылка на аккаунт</label>
+            <input type="url" name="url" value="{{ item.url if item else '' }}" placeholder="https://instagram.com/mybrand">
+        </div>
+        <div class="field">
+            <label>Заметки</label>
+            <textarea name="notes" placeholder="Для чего используется, особенности...">{{ item.notes if item else '' }}</textarea>
+        </div>
+        <div class="actions">
+            <button type="submit" class="btn btn-purple">{{ action }}</button>
+            <a href="/smm" class="btn btn-gray">Отмена</a>
+        </div>
+    </form>
+</div>
+</body>
+</html>

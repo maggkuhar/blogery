@@ -1,0 +1,122 @@
+<style>
+    /* === Цветовая тема: Внешний трафик (зелёная) === */
+    {% if current_block == 'traffic' %}
+    body { background: #eef7f1 !important; }
+    .header-wrap { background: #0d2318; }
+    .tabs-traffic { background: #163d28; }
+    .block-btn:not(.active) { color: #5a9e78; }
+    .block-btn:not(.active):hover { color: #a8d9bc; }
+    .block-divider { color: #2a5c3d; }
+    .header-right { color: #4a8a65; }
+    {% else %}
+    /* === Цветовая тема: SMM-платформа (фиолетовая) === */
+    body { background: #f2eef9 !important; }
+    .header-wrap { background: #1a0d2e; }
+    .tabs-smm { background: #2d1b4e; }
+    .block-btn:not(.active) { color: #9a7ec0; }
+    .block-btn:not(.active):hover { color: #c4a8e8; }
+    .block-divider { color: #4a2d7a; }
+    .header-right { color: #7a5aaa; }
+    {% endif %}
+
+    .header-wrap { color: #fff; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; }
+    .block-switcher { display: flex; align-items: center; gap: 6px; }
+    .block-btn { padding: 6px 18px; border-radius: 20px; border: none; cursor: pointer; font-size: 13px; background: transparent; color: #666; transition: all 0.2s; }
+    .block-btn.active { color: #fff; font-size: 17px; font-weight: bold; background: transparent; cursor: default; }
+    .block-divider { font-size: 18px; }
+
+    .tabs { display: flex; }
+    .tabs-traffic { background: #222; }
+    .tabs-smm { background: #1a1a2e; }
+    .tabs a { padding: 12px 24px; text-decoration: none; font-size: 14px; border-bottom: 3px solid transparent; display: block; }
+    .tabs-traffic a { color: #aaa; }
+    .tabs-traffic a.active { color: #fff; border-bottom-color: #27ae60; }
+    .tabs-traffic a:hover { color: #fff; }
+    .tabs-smm a { color: #aaa; }
+    .tabs-smm a.active { color: #fff; border-bottom-color: #9b59b6; }
+    .tabs-smm a:hover { color: #fff; }
+
+    /* Модалка переключения */
+    .switch-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 999; }
+    .switch-modal { background: #fff; border-radius: 12px; padding: 32px; max-width: 420px; width: 90%; margin: 140px auto; text-align: center; }
+    .switch-modal h3 { font-size: 18px; margin-bottom: 10px; }
+    .switch-modal p { font-size: 14px; color: #666; margin-bottom: 24px; }
+    .switch-modal-actions { display: flex; gap: 12px; justify-content: center; }
+    .switch-modal .btn-confirm { background: #27ae60; color: #fff; padding: 10px 28px; border: none; border-radius: 8px; font-size: 15px; cursor: pointer; font-weight: bold; }
+    .switch-modal .btn-confirm.smm { background: #9b59b6; }
+    .switch-modal .btn-cancel { background: #eee; color: #555; padding: 10px 28px; border: none; border-radius: 8px; font-size: 15px; cursor: pointer; }
+</style>
+
+<div class="header-wrap">
+    <div class="block-switcher">
+        {% if current_block == 'traffic' %}
+            <span class="block-btn active">Внешний трафик</span>
+            <span class="block-divider">|</span>
+            <button class="block-btn" onclick="confirmSwitch('smm', '/smm', 'SMM-платформа')">SMM-платформа</button>
+        {% else %}
+            <button class="block-btn" onclick="confirmSwitch('traffic', '/', 'Внешний трафик')">Внешний трафик</button>
+            <span class="block-divider">|</span>
+            <span class="block-btn active">SMM-платформа</span>
+        {% endif %}
+    </div>
+    <div class="header-right">панель управления</div>
+</div>
+
+{% if current_block == 'traffic' %}
+<div class="tabs tabs-traffic">
+    <a href="/" {% if tab == 'bloggers' %}class="active"{% endif %}>Блогеры</a>
+    <a href="/groups" {% if tab == 'groups' %}class="active"{% endif %}>Тематические группы</a>
+    <a href="/channels" {% if tab == 'channels' %}class="active"{% endif %}>Тематические каналы</a>
+    <a href="/bots" {% if tab == 'bots' %}class="active"{% endif %}>Мои боты</a>
+    <a href="/templates" {% if tab == 'templates' %}class="active"{% endif %}>Шаблоны</a>
+    <a href="/stats" {% if tab == 'stats' %}class="active"{% endif %}>Статистика</a>
+</div>
+{% else %}
+<div class="tabs tabs-smm">
+    <a href="/smm" {% if tab == 'smm_accounts' %}class="active"{% endif %}>Мои аккаунты</a>
+    <a href="/smm/posts" {% if tab == 'smm_posts' %}class="active"{% endif %}>Посты</a>
+    <a href="/smm/stats" {% if tab == 'smm_stats' %}class="active"{% endif %}>Статистика</a>
+    <a href="/smm/content" {% if tab == 'smm_content' %}class="active"{% endif %}>Контент</a>
+    <a href="/smm/templates" {% if tab == 'smm_templates' %}class="active"{% endif %}>Шаблоны</a>
+    <a href="/smm/images" {% if tab == 'smm_images' %}class="active"{% endif %}>Картинки</a>
+    <a href="/smm/video" {% if tab == 'smm_video' %}class="active"{% endif %}>Видео</a>
+    <a href="/smm/text" {% if tab == 'smm_text' %}class="active"{% endif %}>Текст</a>
+    <a href="/smm/history" {% if tab == 'smm_history' %}class="active"{% endif %}>История</a>
+</div>
+{% endif %}
+
+<!-- Модалка подтверждения переключения -->
+<div class="switch-overlay" id="switch-overlay" onclick="if(event.target.id==='switch-overlay')cancelSwitch()">
+    <div class="switch-modal">
+        <h3 id="switch-title">Переключить панель?</h3>
+        <p id="switch-desc"></p>
+        <div class="switch-modal-actions">
+            <button class="btn-confirm" id="switch-confirm-btn" onclick="doSwitch()">Да, переключить</button>
+            <button class="btn-cancel" onclick="cancelSwitch()">Отмена</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let switchTarget = '/';
+let switchName = '';
+
+function confirmSwitch(block, url, name) {
+    switchTarget = url;
+    switchName = name;
+    document.getElementById('switch-title').textContent = 'Переключить на ' + name + '?';
+    document.getElementById('switch-desc').textContent = 'Вы действительно хотите перейти в панель управления «' + name + '»?';
+    const btn = document.getElementById('switch-confirm-btn');
+    btn.className = 'btn-confirm' + (block === 'smm' ? ' smm' : '');
+    document.getElementById('switch-overlay').style.display = 'block';
+}
+
+function doSwitch() {
+    document.getElementById('switch-overlay').style.display = 'none';
+    window.location.href = switchTarget;
+}
+
+function cancelSwitch() {
+    document.getElementById('switch-overlay').style.display = 'none';
+}
+</script>

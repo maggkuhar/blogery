@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Внешний трафик</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; color: #222; }
+        header { background: #111; color: #fff; padding: 16px 24px; }
+        header h1 { font-size: 20px; }
+        .tabs { background: #222; display: flex; }
+        .tabs a { padding: 12px 28px; color: #aaa; text-decoration: none; font-size: 14px; border-bottom: 3px solid transparent; }
+        .tabs a.active { color: #fff; border-bottom: 3px solid #27ae60; }
+        .tabs a:hover { color: #fff; }
+        .form-wrap { max-width: 680px; margin: 32px auto; background: #fff; border-radius: 10px; padding: 32px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+        .form-wrap h2 { font-size: 16px; margin-bottom: 24px; color: #333; }
+        .field { margin-bottom: 18px; }
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        label { display: block; font-size: 13px; color: #555; margin-bottom: 6px; }
+        input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+        textarea { height: 220px; resize: vertical; line-height: 1.6; font-family: Arial, sans-serif; }
+        .hint { font-size: 11px; color: #aaa; margin-top: 4px; }
+        .vars-block { background: #f0f7ff; border-radius: 8px; padding: 14px 16px; margin-bottom: 18px; }
+        .vars-block p { font-size: 13px; color: #555; margin-bottom: 8px; }
+        .vars-list { display: flex; gap: 8px; flex-wrap: wrap; }
+        .var-btn { font-size: 12px; background: #e8f4fd; color: #2980b9; border: 1px solid #bee3f8; padding: 4px 10px; border-radius: 10px; cursor: pointer; font-family: monospace; }
+        .var-btn:hover { background: #d0eaf8; }
+        .actions { display: flex; gap: 12px; margin-top: 24px; }
+        .btn { padding: 10px 24px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; text-decoration: none; display: inline-block; }
+        .btn-green { background: #27ae60; color: #fff; }
+        .btn-gray { background: #888; color: #fff; }
+    </style>
+</head>
+<body>
+{% include '_nav.html' %}
+
+<div class="form-wrap">
+    <h2>{{ action }}</h2>
+    <form method="post">
+
+        <div class="field">
+            <label>Название шаблона</label>
+            <input type="text" name="title" value="{{ item.title if item else '' }}" placeholder="Например: Первое знакомство — Instagram" required>
+        </div>
+
+        <div class="row">
+            <div class="field">
+                <label>Формат</label>
+                <select name="format" id="format-select" onchange="updateSubgroups()">
+                    {% for fmt in template_formats.keys() %}
+                    <option value="{{ fmt }}" {% if (item and item.format == fmt) or preset_format == fmt %}selected{% endif %}>
+                        {{ fmt|capitalize }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="field">
+                <label>Подгруппа</label>
+                <select name="subgroup" id="subgroup-select">
+                    {% for fmt, subgroups in template_formats.items() %}
+                        {% for sg in subgroups %}
+                        <option value="{{ sg }}"
+                            data-format="{{ fmt }}"
+                            {% if (item and item.subgroup == sg) or preset_subgroup == sg %}selected{% endif %}>
+                            {{ sg }}
+                        </option>
+                        {% endfor %}
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Переменные -->
+        <div class="vars-block">
+            <p>Кликни на переменную — она вставится в текст шаблона:</p>
+            <div class="vars-list">
+                <span class="var-btn" onclick="insertVar('{{имя}}')">{{имя}}</span>
+                <span class="var-btn" onclick="insertVar('{{платформа}}')">{{платформа}}</span>
+                <span class="var-btn" onclick="insertVar('{{подписчики}}')">{{подписчики}}</span>
+                <span class="var-btn" onclick="insertVar('{{тематика}}')">{{тематика}}</span>
+                <span class="var-btn" onclick="insertVar('{{условия}}')">{{условия}}</span>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Текст шаблона</label>
+            <textarea name="content" id="content" placeholder="Привет, {{имя}}! Мы следим за твоим контентом на {{платформа}} и хотели бы предложить сотрудничество...">{{ item.content if item else '' }}</textarea>
+            <div class="hint">Используй переменные выше — при отправке они заменятся на данные блогера</div>
+        </div>
+
+        <div class="actions">
+            <button type="submit" class="btn btn-green">{{ action }}</button>
+            <a href="/templates" class="btn btn-gray">Отмена</a>
+        </div>
+    </form>
+</div>
+
+<script>
+const FORMATS = {{ template_formats|tojson }};
+
+function updateSubgroups() {
+    const fmt = document.getElementById('format-select').value;
+    const sg = document.getElementById('subgroup-select');
+    const options = sg.querySelectorAll('option');
+    options.forEach(opt => {
+        opt.style.display = opt.dataset.format === fmt ? '' : 'none';
+    });
+    const first = Array.from(options).find(o => o.dataset.format === fmt);
+    if (first) sg.value = first.value;
+}
+
+function insertVar(varName) {
+    const ta = document.getElementById('content');
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    ta.value = ta.value.substring(0, start) + varName + ta.value.substring(end);
+    ta.focus();
+    ta.selectionStart = ta.selectionEnd = start + varName.length;
+}
+
+// Инициализация подгрупп при загрузке
+updateSubgroups();
+{% if item %}
+document.getElementById('subgroup-select').value = '{{ item.subgroup }}';
+{% elif preset_subgroup %}
+document.getElementById('subgroup-select').value = '{{ preset_subgroup }}';
+{% endif %}
+</script>
+</body>
+</html>

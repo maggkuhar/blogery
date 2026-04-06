@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Внешний трафик — SMM</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; color: #222; }
+        header { background: #111; color: #fff; padding: 16px 24px; }
+        header h1 { font-size: 20px; }
+        .tabs { background: #222; display: flex; }
+        .tabs a { padding: 12px 28px; color: #aaa; text-decoration: none; font-size: 14px; border-bottom: 3px solid transparent; }
+        .tabs a.active { color: #fff; border-bottom: 3px solid #9b59b6; }
+        .tabs a:hover { color: #fff; }
+        .subtabs { background: #f0f0f0; display: flex; border-bottom: 1px solid #ddd; padding: 0 24px; }
+        .subtabs a { padding: 11px 22px; text-decoration: none; font-size: 14px; color: #666; border-bottom: 3px solid transparent; }
+        .subtabs a.active { color: #9b59b6; border-bottom: 3px solid #9b59b6; font-weight: bold; }
+        .form-wrap { max-width: 720px; margin: 32px auto; }
+        .card { background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 20px; }
+        .card h3 { font-size: 14px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0; }
+        .field { margin-bottom: 16px; }
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        label { display: block; font-size: 13px; color: #555; margin-bottom: 6px; }
+        input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+        textarea { height: 180px; resize: vertical; line-height: 1.6; }
+        .hint { font-size: 11px; color: #aaa; margin-top: 4px; }
+
+        /* Выбор платформ */
+        .platform-checks { display: flex; gap: 10px; flex-wrap: wrap; }
+        .plat-check { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-size: 14px; user-select: none; }
+        .plat-check input { width: auto; margin: 0; cursor: pointer; }
+        .plat-check:has(input:checked) { border-color: #9b59b6; background: #f5eef8; }
+
+        /* Выбор аккаунтов */
+        .acc-checks { display: flex; flex-direction: column; gap: 8px; }
+        .acc-check { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-size: 14px; user-select: none; }
+        .acc-check input { width: auto; margin: 0; cursor: pointer; }
+        .acc-check:has(input:checked) { border-color: #9b59b6; background: #f5eef8; }
+        .acc-platform { font-size: 11px; color: #888; background: #eee; padding: 2px 8px; border-radius: 10px; }
+
+        /* AI баннер */
+        .ai-hint { background: linear-gradient(135deg, #1a1a2e, #16213e); color: #fff; border-radius: 8px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+        .ai-hint p { font-size: 13px; color: #aaa; margin-top: 3px; }
+        .ai-hint h4 { font-size: 14px; }
+        .ai-hint span { font-size: 12px; background: #27ae60; color: #fff; padding: 4px 12px; border-radius: 10px; white-space: nowrap; }
+
+        .actions { display: flex; gap: 12px; }
+        .btn { padding: 10px 24px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; text-decoration: none; display: inline-block; }
+        .btn-purple { background: #9b59b6; color: #fff; }
+        .btn-gray { background: #888; color: #fff; }
+        .no-accounts { font-size: 13px; color: #888; padding: 10px 0; }
+    </style>
+</head>
+<body>
+{% include '_nav.html' %}
+
+<div class="form-wrap">
+    <form method="post">
+
+        <!-- Контент -->
+        <div class="card">
+            <h3>Контент</h3>
+            <div class="ai-hint">
+                <div>
+                    <h4>🤖 AI-генерация текста</h4>
+                    <p>Бот напишет текст поста — скоро</p>
+                </div>
+                <span>Скоро</span>
+            </div>
+            <div class="field">
+                <label>Название (для себя)</label>
+                <input type="text" name="title" value="{{ item.title if item else '' }}" placeholder="Например: Акция май — Instagram">
+            </div>
+            <div class="field">
+                <label>Текст поста</label>
+                <textarea name="content_text" placeholder="Текст который увидят подписчики...">{{ item.content_text if item else '' }}</textarea>
+            </div>
+            <div class="field">
+                <label>Медиафайл (путь или ссылка)</label>
+                <input type="text" name="media_path" value="{{ item.media_path if item else '' }}" placeholder="https://... или /путь/к/файлу.jpg">
+                <div class="hint">Загрузка файлов — в следующем этапе. Пока укажи ссылку или путь.</div>
+            </div>
+        </div>
+
+        <!-- Платформы -->
+        <div class="card">
+            <h3>Куда публикуем</h3>
+            <div class="field">
+                <label>Платформы</label>
+                <div class="platform-checks">
+                    {% set selected_platforms = (item.platforms.split(',') if item and item.platforms else []) %}
+                    {% for p in platforms %}
+                    <label class="plat-check">
+                        <input type="checkbox" name="platforms_check" value="{{ p }}"
+                            {% if p in selected_platforms %}checked{% endif %}
+                            onchange="updatePlatforms()">
+                        {{ p }}
+                    </label>
+                    {% endfor %}
+                </div>
+                <input type="hidden" name="platforms" id="platforms-hidden" value="{{ item.platforms if item else '' }}">
+            </div>
+
+            {% if accounts %}
+            <div class="field">
+                <label>Аккаунты для публикации</label>
+                <div class="acc-checks">
+                    {% set selected_accounts = (item.account_ids.split(',') if item and item.account_ids else []) %}
+                    {% for acc in accounts %}
+                    <label class="acc-check">
+                        <input type="checkbox" name="account_ids_check" value="{{ acc.id }}"
+                            {% if acc.id|string in selected_accounts %}checked{% endif %}
+                            onchange="updateAccounts()">
+                        <span style="flex:1">{{ acc.name }}</span>
+                        <span class="acc-platform">{{ acc.platform }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+                <input type="hidden" name="account_ids" id="accounts-hidden" value="{{ item.account_ids if item else '' }}">
+            </div>
+            {% else %}
+            <div class="no-accounts">Нет активных аккаунтов — <a href="/smm/add">добавить</a></div>
+            {% endif %}
+        </div>
+
+        <!-- Статус и расписание -->
+        <div class="card">
+            <h3>Публикация</h3>
+            <div class="row">
+                <div class="field">
+                    <label>Статус</label>
+                    <select name="status">
+                        {% for s in smm_statuses %}
+                        <option value="{{ s }}" {% if item and item.status == s %}selected{% endif %}>{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Запланировать на</label>
+                    <input type="datetime-local" name="scheduled_at" value="{{ item.scheduled_at if item else '' }}">
+                    <div class="hint">Автопостинг — в следующем этапе</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button type="submit" class="btn btn-purple">{{ action }}</button>
+            <a href="/smm/posts" class="btn btn-gray">Отмена</a>
+        </div>
+    </form>
+</div>
+
+<script>
+function updatePlatforms() {
+    const checked = Array.from(document.querySelectorAll('input[name="platforms_check"]:checked')).map(c => c.value);
+    document.getElementById('platforms-hidden').value = checked.join(',');
+}
+function updateAccounts() {
+    const checked = Array.from(document.querySelectorAll('input[name="account_ids_check"]:checked')).map(c => c.value);
+    document.getElementById('accounts-hidden').value = checked.join(',');
+}
+</script>
+</body>
+</html>
