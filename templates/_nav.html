@@ -67,9 +67,11 @@
     <a href="/" {% if tab == 'bloggers' %}class="active"{% endif %}>Блогеры</a>
     <a href="/groups" {% if tab == 'groups' %}class="active"{% endif %}>Тематические группы</a>
     <a href="/channels" {% if tab == 'channels' %}class="active"{% endif %}>Тематические каналы</a>
-    <a href="/bots" {% if tab == 'bots' %}class="active"{% endif %}>Мои боты</a>
-    <a href="/templates" {% if tab == 'templates' %}class="active"{% endif %}>Шаблоны</a>
+    <a href="/mailing" {% if tab == 'mailing' %}class="active"{% endif %}>Email рассылка</a>
+    <a href="/ads" {% if tab == 'ads' %}class="active"{% endif %}>💲 Реклама</a>
+    <a href="/contacts" {% if tab == 'contacts' %}class="active"{% endif %}>База контактов</a>
     <a href="/stats" {% if tab == 'stats' %}class="active"{% endif %}>Статистика</a>
+    <a href="/bots" {% if tab == 'bots' or tab == 'templates' %}class="active"{% endif %}>Мои боты</a>
 </div>
 {% else %}
 <div class="tabs tabs-smm">

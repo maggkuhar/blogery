@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Email рассылка — Внешний трафик</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; color: #222; }
+        .page { max-width: 800px; margin: 80px auto; padding: 0 20px; text-align: center; }
+        .icon { font-size: 56px; margin-bottom: 20px; }
+        h2 { font-size: 22px; color: #333; margin-bottom: 12px; }
+        .desc { font-size: 15px; color: #777; line-height: 1.7; margin-bottom: 32px; }
+        .steps { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 32px; }
+        .step { background: #fff; border-radius: 10px; padding: 20px 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); width: 200px; text-align: center; }
+        .step-num { font-size: 24px; font-weight: bold; color: #1a7f4b; margin-bottom: 8px; }
+        .step-text { font-size: 13px; color: #555; line-height: 1.5; }
+        .badge { display: inline-block; background: #fff3cd; color: #856404; padding: 8px 20px; border-radius: 20px; font-size: 13px; font-weight: bold; }
+    </style>
+</head>
+<body>
+{% include '_nav.html' %}
+
+<div class="page">
+    <div class="icon">📧</div>
+    <h2>Email рассылка — в разработке</h2>
+    <div class="desc">
+        Бот-Рассыльщик возьмёт базу контактов, отфильтрует по тематике и отправит каждому персональное предложение.
+    </div>
+    <div class="steps">
+        <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-text">Разведчик собирает контакты в базу</div>
+        </div>
+        <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-text">Фильтрация по тематике и региону</div>
+        </div>
+        <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-text">Рассыльщик отправляет письмо с предложением</div>
+        </div>
+        <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-text">Трекер фиксирует открытия и ответы</div>
+        </div>
+    </div>
+    <div class="badge">Этот блок будет реализован после Разведчика</div>
+</div>
+</body>
+</html>

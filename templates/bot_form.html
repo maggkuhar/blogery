@@ -2,119 +2,411 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Внешний трафик</title>
+    <title>Внешний трафик — Бот</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: Arial, sans-serif; background: #f5f5f5; color: #222; }
-        header { background: #111; color: #fff; padding: 16px 24px; }
-        header h1 { font-size: 20px; }
-        .tabs { background: #222; display: flex; }
-        .tabs a { padding: 12px 28px; color: #aaa; text-decoration: none; font-size: 14px; border-bottom: 3px solid transparent; }
-        .tabs a.active { color: #fff; border-bottom: 3px solid #27ae60; }
-        .tabs a:hover { color: #fff; }
-        .form-wrap { max-width: 620px; margin: 32px auto; background: #fff; border-radius: 10px; padding: 32px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
-        .form-wrap h2 { font-size: 16px; margin-bottom: 24px; color: #333; }
-        .section { margin-bottom: 28px; }
-        .section-title { font-size: 12px; font-weight: bold; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; padding-bottom: 6px; border-bottom: 1px solid #f0f0f0; }
+        body { font-family: Arial, sans-serif; color: #222; }
+        .form-wrap { max-width: 720px; margin: 32px auto; background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); overflow: hidden; }
+        .form-header { padding: 24px 32px 0; border-bottom: 1px solid #f0f0f0; }
+        .form-header h2 { font-size: 17px; color: #333; margin-bottom: 16px; }
+
+        /* Вкладки карточки бота */
+        .card-tabs { display: flex; gap: 0; }
+        .card-tab { padding: 10px 24px; font-size: 14px; cursor: pointer; color: #888; border-bottom: 3px solid transparent; background: none; border-top: none; border-left: none; border-right: none; }
+        .card-tab.active { color: #1a7f4b; border-bottom-color: #1a7f4b; font-weight: bold; }
+
+        .card-body { padding: 28px 32px 32px; }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+
+        .section { margin-bottom: 24px; }
+        .section-title { font-size: 11px; font-weight: bold; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; padding-bottom: 6px; border-bottom: 1px solid #f5f5f5; }
         .field { margin-bottom: 16px; }
         .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
         label { display: block; font-size: 13px; color: #555; margin-bottom: 6px; }
-        input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
-        textarea { height: 80px; resize: vertical; }
-        .actions { display: flex; gap: 12px; margin-top: 24px; }
-        .btn { padding: 10px 24px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; text-decoration: none; display: inline-block; }
-        .btn-green { background: #27ae60; color: #fff; }
-        .btn-gray { background: #888; color: #fff; }
+        input[type=text], input[type=number], input[type=password], select, textarea {
+            width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px;
+        }
+        input[readonly], select[disabled] { background: #f8f8f8; color: #888; cursor: not-allowed; }
+        textarea { height: 70px; resize: vertical; }
         .hint { font-size: 11px; color: #aaa; margin-top: 4px; }
+        .readonly-badge { display: inline-block; font-size: 10px; background: #f0f0f0; color: #999; padding: 2px 7px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
+
+        /* Чекбоксы-группы */
+        .check-group { border: 1px solid #e8e8e8; border-radius: 8px; padding: 14px; margin-bottom: 16px; }
+        .check-group-title { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; font-weight: bold; }
+        .check-items { display: flex; flex-wrap: wrap; gap: 6px; }
+        .check-item { display: flex; align-items: center; gap: 5px; }
+        .check-item input[type=checkbox] { width: auto; }
+        .check-item label { font-size: 13px; color: #444; margin: 0; cursor: pointer; }
+
+        .actions { display: flex; gap: 12px; margin-top: 8px; }
+        .btn { padding: 10px 24px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; text-decoration: none; display: inline-block; }
+        .btn-green { background: #1a7f4b; color: #fff; }
+        .btn-green:hover { background: #15683d; }
+        .btn-gray { background: #888; color: #fff; }
+        .bot-info { background: #f0f9f4; border: 1px solid #c8e6d8; border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; font-size: 13px; color: #2d6a47; line-height: 1.7; }
+        .bot-info strong { color: #1a4d32; }
     </style>
 </head>
 <body>
 {% include '_nav.html' %}
 
 <div class="form-wrap">
-    <h2>{{ action }}</h2>
-    <form method="post">
-
-        <div class="section">
-            <div class="section-title">Основное</div>
-            <div class="field">
-                <label>Название бота</label>
-                <input type="text" name="name" value="{{ item.name if item else '' }}" placeholder="Например: Instagram Разведчик #1" required>
-            </div>
-            <div class="row">
-                <div class="field">
-                    <label>Платформа</label>
-                    <select name="platform">
-                        {% for p in platforms %}
-                        <option value="{{ p }}" {% if item and item.platform == p %}selected{% endif %}>{{ p }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="field">
-                    <label>Роль</label>
-                    <select name="role">
-                        {% for r in roles %}
-                        <option value="{{ r }}" {% if item and item.role == r %}selected{% endif %}>{{ r }}</option>
-                        {% endfor %}
-                    </select>
-                    <div class="hint">Разведчик — ищет. Контакт — взаимодействует.</div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="field">
-                    <label>Статус</label>
-                    <select name="status">
-                        {% for s in bot_statuses %}
-                        <option value="{{ s }}" {% if item and item.status == s %}selected{% endif %}>{{ s }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="field">
-                    <label>Аккаунт (логин или токен)</label>
-                    <input type="text" name="account" value="{{ item.account if item else '' }}" placeholder="@username или токен">
-                </div>
-            </div>
+    <div class="form-header">
+        <h2>
+            {% if item %}Бот: {{ item.name }}{% else %}Новый бот{% endif %}
+        </h2>
+        <div class="card-tabs">
+            <button class="card-tab active" onclick="showTab('main', this)">Основное</button>
+            <button class="card-tab" onclick="showTab('settings', this)">Настройки</button>
         </div>
+    </div>
 
-        <div class="section">
-            <div class="section-title">Поведение</div>
-            <div class="row">
-                <div class="field">
-                    <label>Лимит действий в день</label>
-                    <input type="number" name="daily_limit" value="{{ item.daily_limit if item else 50 }}">
-                    <div class="hint">Рекомендуется 20–100 для нового аккаунта</div>
+    <div class="card-body">
+        <form method="post">
+
+            {# --- Вкладка: Основное --- #}
+            <div class="tab-pane active" id="tab-main">
+                {% if item %}
+                <div class="bot-info">
+                    Платформа, шаблон и токен <strong>нельзя изменить</strong> — это личность бота.<br>
+                    Если нужен другой аккаунт или платформа — создайте нового бота.
                 </div>
-                <div class="field">
-                    <label>Расписание работы</label>
-                    <input type="text" name="schedule" value="{{ item.schedule if item else '09:00-22:00' }}" placeholder="09:00-22:00">
+                {% endif %}
+
+                <div class="section">
+                    <div class="section-title">Идентификация</div>
+                    <div class="field">
+                        <label>Название бота</label>
+                        {% if item %}
+                        <input type="text" value="{{ item.name }}" readonly>
+                        {% else %}
+                        <input type="text" name="name" placeholder="Например: Разведчик-TG-1" required>
+                        {% endif %}
+                    </div>
+                    <div class="row">
+                        <div class="field">
+                            <label>Платформа <span class="readonly-badge">не меняется</span></label>
+                            {% if item %}
+                            <input type="text" value="{{ item.platform }}" readonly>
+                            {% else %}
+                            <select name="platform">
+                                {% for p in platforms %}
+                                <option value="{{ p }}">{{ p }}</option>
+                                {% endfor %}
+                            </select>
+                            {% endif %}
+                        </div>
+                        <div class="field">
+                            <label>Шаблон (роль) <span class="readonly-badge">не меняется</span></label>
+                            {% if item %}
+                            <input type="text" value="{{ item.role }}" readonly>
+                            {% else %}
+                            <select name="role">
+                                {% for r in roles %}
+                                <option value="{{ r }}">{{ r }}</option>
+                                {% endfor %}
+                            </select>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label>Токен / Аккаунт <span class="readonly-badge">не меняется</span></label>
+                        {% if item %}
+                        <input type="password" value="{{ item.account or '' }}" readonly>
+                        {% else %}
+                        <input type="password" name="account" placeholder="API токен или @username">
+                        <div class="hint">Сохраняется один раз. После создания недоступен для редактирования.</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if not item %}
+                <div class="section">
+                    <div class="section-title">Статус</div>
+                    <div class="field">
+                        <label>Начальный статус</label>
+                        <select name="status">
+                            {% for s in bot_statuses %}
+                            <option value="{{ s }}" {% if s == 'отключён' %}selected{% endif %}>{{ s }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="actions">
+                    <button type="button" class="btn btn-green" onclick="showTab('settings', document.querySelectorAll('.card-tab')[1])">Далее: Настройки →</button>
+                    <a href="/bots" class="btn btn-gray">Отмена</a>
+                </div>
+                {% else %}
+                <div class="section">
+                    <div class="section-title">Статус</div>
+                    <div class="row">
+                        <div class="field">
+                            <label>Статус</label>
+                            <select name="status">
+                                {% for s in bot_statuses %}
+                                <option value="{{ s }}" {% if item.status == s %}selected{% endif %}>{{ s }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Забанен</label>
+                            <input type="text" value="{{ item.ban_count or 0 }} раз(а){% if item.ban_reason %} — {{ item.ban_reason }}{% endif %}" readonly>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            {# --- Вкладка: Настройки --- #}
+            <div class="tab-pane" id="tab-settings">
+
+                <div style="background:#e8f5ee;border:1px solid #b2dfcc;border-radius:8px;padding:13px 16px;font-size:13px;color:#1a5c35;margin-bottom:20px;">
+                    <b>Шаг 4 из 4 — Настройки.</b> Укажи что искать, где и как. Эти параметры можно менять в любой момент — бот будет работать по новым условиям.
+                </div>
+
+                {% set role = item.role if item else 'разведчик' %}
+
+                {# ===== РАЗВЕДЧИК ===== #}
+                {% if role == 'разведчик' %}
+
+                <div class="section">
+                    <div class="section-title">Платформы для поиска</div>
+                    {% set sel_sp = (item.target or '').split(',') if item and item.target else [] %}
+                    {% for group_name, group_items in scout_platforms.items() %}
+                    <div class="check-group">
+                        <div class="check-group-title">{{ group_name }}</div>
+                        <div class="check-items">
+                            {% for p in group_items %}
+                            <div class="check-item">
+                                <input type="checkbox" name="search_platforms" value="{{ p }}" id="sp_{{ loop.index }}">
+                                <label for="sp_{{ loop.index }}">{{ p }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Тематики</div>
+                    {% set sel_topics = (item.topics or '').split(',') if item and item.topics else [] %}
+                    <div class="check-group">
+                        <div class="check-items">
+                            {% for t in scout_topics %}
+                            <div class="check-item">
+                                <input type="checkbox" name="topics" value="{{ t }}" id="topic_{{ loop.index }}"
+                                    {% if t in sel_topics %}checked{% endif %}>
+                                <label for="topic_{{ loop.index }}">{{ t }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Регионы</div>
+                    {% set sel_regions = (item.regions or '').split(',') if item and item.regions else [] %}
+                    <div class="check-group">
+                        <div class="check-items">
+                            {% for r in scout_regions %}
+                            <div class="check-item">
+                                <input type="checkbox" name="regions" value="{{ r }}" id="reg_{{ loop.index }}"
+                                    {% if r in sel_regions %}checked{% endif %}>
+                                <label for="reg_{{ loop.index }}">{{ r }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Что собирать</div>
+                    {% set sel_ct = (item.contact_types or '').split(',') if item and item.contact_types else [] %}
+                    <div class="check-group">
+                        <div class="check-items">
+                            {% for ct in scout_contact_types %}
+                            <div class="check-item">
+                                <input type="checkbox" name="contact_types" value="{{ ct }}" id="ct_{{ loop.index }}"
+                                    {% if ct in sel_ct %}checked{% endif %}>
+                                <label for="ct_{{ loop.index }}">{{ ct }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Стратегия</div>
+                    <div class="field">
+                        <label>Ключевые слова</label>
+                        <input type="text" name="keywords" value="{{ item.keywords if item and item.keywords else '' }}" placeholder="саморазвитие, психология, коучинг">
+                        <div class="hint">Через запятую — по этим словам ищем группы и каналы</div>
+                    </div>
+                    <div class="row">
+                        <div class="field">
+                            <label>Точка входа</label>
+                            <select name="entry_point">
+                                <option value="">— выбрать —</option>
+                                {% for platform_name, entry in scout_entry_points.items() %}
+                                <option value="{{ entry }}" {% if item and item.entry_point == entry %}selected{% endif %}>
+                                    {{ platform_name }}: {{ entry }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Что предложить</label>
+                            <select name="offer">
+                                <option value="">— выбрать —</option>
+                                {% for o in scout_offers %}
+                                <option value="{{ o }}" {% if item and item.offer == o %}selected{% endif %}>{{ o }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                {# ===== ПАРСЕР ===== #}
+                {% elif role == 'парсер' %}
+                <div class="section">
+                    <div class="section-title">Источник</div>
+                    <div class="field">
+                        <label>Ссылка на группу / канал / профиль</label>
+                        <input type="text" name="target" value="{{ item.target if item and item.target else '' }}" placeholder="https://t.me/example">
+                    </div>
+                    <div class="field">
+                        <label>Что парсить</label>
+                        <select name="keywords">
+                            <option value="участники" {% if item and item.keywords == 'участники' %}selected{% endif %}>Участники</option>
+                            <option value="посты" {% if item and item.keywords == 'посты' %}selected{% endif %}>Посты</option>
+                            <option value="комментарии" {% if item and item.keywords == 'комментарии' %}selected{% endif %}>Комментарии</option>
+                            <option value="контакты" {% if item and item.keywords == 'контакты' %}selected{% endif %}>Контакты</option>
+                        </select>
+                    </div>
+                </div>
+
+                {# ===== ПОСТЕР ===== #}
+                {% elif role == 'постер' %}
+                <div class="section">
+                    <div class="section-title">Публикация</div>
+                    <div class="field">
+                        <label>Канал / группа для постинга</label>
+                        <input type="text" name="target" value="{{ item.target if item and item.target else '' }}" placeholder="https://t.me/mychannel">
+                    </div>
+                    <div class="field">
+                        <label>Постов в день</label>
+                        <input type="number" name="keywords" value="{{ item.keywords if item and item.keywords else 3 }}">
+                    </div>
+                </div>
+
+                {# ===== КОММЕНТАТОР ===== #}
+                {% elif role == 'комментатор' %}
+                <div class="section">
+                    <div class="section-title">Комментирование</div>
+                    <div class="field">
+                        <label>Хэштег или профиль цели</label>
+                        <input type="text" name="target" value="{{ item.target if item and item.target else '' }}" placeholder="#маркетинг или @example">
+                    </div>
+                    <div class="field">
+                        <label>Шаблон комментария</label>
+                        <textarea name="keywords" placeholder="Отличный контент! Подписался">{{ item.keywords if item and item.keywords else '' }}</textarea>
+                    </div>
+                </div>
+
+                {# ===== ИНВАЙТЕР ===== #}
+                {% elif role == 'инвайтер' %}
+                <div class="section">
+                    <div class="section-title">Инвайтинг</div>
+                    <div class="field">
+                        <label>Откуда брать участников</label>
+                        <input type="text" name="keywords" value="{{ item.keywords if item and item.keywords else '' }}" placeholder="https://t.me/competitor_group">
+                    </div>
+                    <div class="field">
+                        <label>Куда приглашать</label>
+                        <input type="text" name="target" value="{{ item.target if item and item.target else '' }}" placeholder="https://t.me/mygroup">
+                    </div>
+                </div>
+
+                {# ===== АНАЛИТИК ===== #}
+                {% elif role == 'аналитик' %}
+                <div class="section">
+                    <div class="section-title">Аналитика</div>
+                    <div class="field">
+                        <label>Профиль / канал для анализа</label>
+                        <input type="text" name="target" value="{{ item.target if item and item.target else '' }}" placeholder="https://t.me/example">
+                    </div>
+                    <div class="field">
+                        <label>Частота сбора</label>
+                        <select name="keywords">
+                            <option value="каждый час" {% if item and item.keywords == 'каждый час' %}selected{% endif %}>Каждый час</option>
+                            <option value="2 раза в день" {% if item and item.keywords == '2 раза в день' %}selected{% endif %}>2 раза в день</option>
+                            <option value="1 раз в день" {% if item and item.keywords == '1 раз в день' %}selected{% endif %}>1 раз в день</option>
+                            <option value="1 раз в неделю" {% if item and item.keywords == '1 раз в неделю' %}selected{% endif %}>1 раз в неделю</option>
+                        </select>
+                    </div>
+                </div>
+
+                {% endif %}
+
+                {# Лимиты и расписание — для всех #}
+                <div class="section">
+                    <div class="section-title">Лимиты и расписание</div>
+                    <div class="row3">
+                        <div class="field">
+                            <label>Лимит в день</label>
+                            <input type="number" name="daily_limit" value="{{ item.daily_limit if item else 50 }}">
+                            <div class="hint">Рекомендуется 20–100</div>
+                        </div>
+                        <div class="field">
+                            <label>Задержка мин (сек)</label>
+                            <input type="number" name="delay_min" value="{{ item.delay_min if item else 30 }}">
+                        </div>
+                        <div class="field">
+                            <label>Задержка макс (сек)</label>
+                            <input type="number" name="delay_max" value="{{ item.delay_max if item else 120 }}">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label>Расписание</label>
+                        <input type="text" name="schedule" value="{{ item.schedule if item else '09:00-22:00' }}" placeholder="09:00-22:00">
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Заметки</div>
+                    <div class="field">
+                        <textarea name="notes" placeholder="Особенности, история, что учесть...">{{ item.notes if item else '' }}</textarea>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button type="submit" class="btn btn-green">Сохранить настройки и запустить бота</button>
+                    <a href="/bots" class="btn btn-gray">Позже</a>
                 </div>
             </div>
-            <div class="row">
-                <div class="field">
-                    <label>Задержка мин (сек)</label>
-                    <input type="number" name="delay_min" value="{{ item.delay_min if item else 30 }}">
-                </div>
-                <div class="field">
-                    <label>Задержка макс (сек)</label>
-                    <input type="number" name="delay_max" value="{{ item.delay_max if item else 120 }}">
-                    <div class="hint">Случайная задержка между действиями</div>
-                </div>
-            </div>
-        </div>
 
-        <div class="section">
-            <div class="section-title">Заметки</div>
-            <div class="field">
-                <label>Примечания</label>
-                <textarea name="notes" placeholder="Особенности, история, что учесть...">{{ item.notes if item else '' }}</textarea>
-            </div>
-        </div>
-
-        <div class="actions">
-            <button type="submit" class="btn btn-green">{{ action }}</button>
-            <a href="/bots" class="btn btn-gray">Отмена</a>
-        </div>
-    </form>
+        </form>
+    </div>
 </div>
+
+<script>
+function showTab(name, btn) {
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.card-tab').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    btn.classList.add('active');
+}
+// Открыть нужную вкладку из URL ?tab=settings
+(function(){
+    const p = new URLSearchParams(location.search).get('tab');
+    if (p) {
+        const btn = document.querySelector('.card-tab[onclick*="' + p + '"]');
+        if (btn) showTab(p, btn);
+    }
+})();
+</script>
 </body>
 </html>

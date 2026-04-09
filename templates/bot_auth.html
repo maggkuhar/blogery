@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Авторизация бота</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; color: #222; }
+        .page { max-width: 600px; margin: 40px auto; padding: 0 20px; }
+
+        .steps { display: flex; align-items: center; gap: 0; margin-bottom: 32px; }
+        .step { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #aaa; }
+        .step.done { color: #1a7f4b; }
+        .step.active { color: #222; font-weight: bold; }
+        .step-num { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; background: #eee; color: #aaa; flex-shrink: 0; }
+        .step.done .step-num { background: #1a7f4b; color: #fff; }
+        .step.active .step-num { background: #222; color: #fff; }
+        .step-sep { flex: 1; height: 1px; background: #ddd; margin: 0 8px; min-width: 20px; }
+
+        .card { background: #fff; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.09); overflow: hidden; }
+        .card-header { padding: 24px 28px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 14px; }
+        .card-header .icon { font-size: 32px; }
+        .card-header h2 { font-size: 18px; font-weight: bold; }
+        .card-header .sub { font-size: 13px; color: #888; margin-top: 3px; }
+        .card-body { padding: 28px; }
+
+        .alert { border-radius: 8px; padding: 12px 16px; font-size: 13px; margin-bottom: 20px; }
+        .alert-green { background: #e8f5ee; border: 1px solid #b2dfcc; color: #1a5c35; }
+        .alert-red { background: #fdecea; border: 1px solid #f5c6cb; color: #7a1c1c; }
+        .alert-blue { background: #e8f0ff; border: 1px solid #b3c6f5; color: #1a3caf; }
+
+        .section { margin-bottom: 28px; }
+        .section-title { font-size: 11px; font-weight: bold; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; }
+        .field { margin-bottom: 16px; }
+        label { display: block; font-size: 13px; color: #555; margin-bottom: 6px; }
+        input { width: 100%; padding: 10px 14px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; }
+        input:focus { outline: none; border-color: #1a7f4b; }
+        .hint { font-size: 11px; color: #aaa; margin-top: 5px; }
+
+        .btn { padding: 10px 24px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: bold; text-decoration: none; display: inline-block; }
+        .btn-green { background: #1a7f4b; color: #fff; }
+        .btn-green:hover { background: #15683d; }
+        .btn-gray { background: #f0f0f0; color: #555; }
+        .btn-blue { background: #1a4caf; color: #fff; }
+        .actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+        .status-row { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: #f8f8f8; border-radius: 8px; margin-bottom: 16px; }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
+        .status-dot.green { background: #1a7f4b; }
+        .status-dot.yellow { background: #f39c12; }
+        .status-dot.red { background: #e74c3c; }
+        .status-text { font-size: 13px; color: #555; }
+
+        .divider { border: none; border-top: 1px solid #f0f0f0; margin: 24px 0; }
+
+        .next-btn { display: block; text-align: center; padding: 14px; background: #1a7f4b; color: #fff; border-radius: 8px; font-size: 15px; font-weight: bold; text-decoration: none; margin-top: 24px; }
+        .next-btn:hover { background: #15683d; }
+        .skip-link { display: block; text-align: center; margin-top: 10px; font-size: 13px; color: #aaa; text-decoration: none; }
+        .skip-link:hover { color: #555; }
+    </style>
+</head>
+<body>
+{% include '_nav.html' %}
+
+<div class="page">
+
+    <!-- Прогресс шагов -->
+    <div class="steps">
+        <div class="step done">
+            <div class="step-num">✓</div>
+            <span>Шаблон</span>
+        </div>
+        <div class="step-sep"></div>
+        <div class="step done">
+            <div class="step-num">✓</div>
+            <span>Данные</span>
+        </div>
+        <div class="step-sep"></div>
+        <div class="step active">
+            <div class="step-num">3</div>
+            <span>Авторизация</span>
+        </div>
+        <div class="step-sep"></div>
+        <div class="step">
+            <div class="step-num">4</div>
+            <span>Настройки</span>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="icon">🔐</div>
+            <div>
+                <h2>Авторизация: {{ bot.name }}</h2>
+                <div class="sub">{{ bot.platform }} · {{ bot.role }}</div>
+            </div>
+        </div>
+
+        <div class="card-body">
+
+            <div class="alert alert-green" style="background:#e8f5ee;border-color:#b2dfcc;color:#1a5c35;margin-bottom:20px;">
+                <b>Шаг 3 из 4 — Авторизация.</b> Подключи аккаунт и проверь соединение. Без успешной авторизации бот не сможет работать.
+            </div>
+
+            {% if msg %}
+            <div class="alert alert-green">✓ {{ msg }}</div>
+            {% endif %}
+            {% if error %}
+            <div class="alert alert-red">⚠️ {{ error }}</div>
+            {% endif %}
+
+            <!-- Статус бота -->
+            <div class="status-row">
+                {% if bot.status == 'отключён' %}
+                <div class="status-dot green"></div>
+                <div class="status-text"><b>Авторизован</b> — бот готов к настройке</div>
+                {% elif bot.status == 'новый' %}
+                <div class="status-dot yellow"></div>
+                <div class="status-text"><b>Ожидает авторизации</b> — выполни шаги ниже</div>
+                {% else %}
+                <div class="status-dot red"></div>
+                <div class="status-text">Статус: {{ bot.status }}</div>
+                {% endif %}
+            </div>
+
+            {% if bot.platform == 'Telegram' %}
+            <!-- ===== АВТОРИЗАЦИЯ TELEGRAM ===== -->
+            <div class="section">
+                <div class="section-title">Шаг 1 — Отправить код в Telegram</div>
+                <div class="alert alert-blue" style="margin-bottom:14px;">
+                    Токен должен быть в формате: <b>api_id:api_hash:+7номер</b><br>
+                    Получи api_id и api_hash на <b>my.telegram.org</b>
+                </div>
+                <form method="post" action="/bots/auth/{{ bot.id }}/send-code">
+                    <button type="submit" class="btn btn-blue">📱 Отправить код на телефон</button>
+                </form>
+            </div>
+
+            <hr class="divider">
+
+            <div class="section">
+                <div class="section-title">Шаг 2 — Ввести код из Telegram</div>
+                <form method="post" action="/bots/auth/{{ bot.id }}/verify">
+                    <div class="field">
+                        <label>Код подтверждения</label>
+                        <input type="text" name="code" placeholder="12345" maxlength="10" autocomplete="off">
+                        <div class="hint">Код придёт в приложение Telegram на указанный номер</div>
+                    </div>
+                    <button type="submit" class="btn btn-green">✓ Подтвердить</button>
+                </form>
+            </div>
+
+            {% elif bot.platform == 'ВКонтакте' %}
+            <!-- ===== АВТОРИЗАЦИЯ VK ===== -->
+            <div class="section">
+                <div class="section-title">Токен ВКонтакте</div>
+                <div class="alert alert-blue">
+                    Укажи <b>access_token</b> от VK аккаунта или сервисного ключа приложения.<br>
+                    Получить можно через VK API или vkhost.github.io/apps
+                </div>
+                <div class="status-row" style="margin-top:14px;">
+                    <div class="status-dot green"></div>
+                    <div class="status-text">Токен VK не требует подтверждения кодом — сразу переходи к тесту</div>
+                </div>
+            </div>
+
+            {% elif bot.platform == 'Instagram' %}
+            <!-- ===== АВТОРИЗАЦИЯ INSTAGRAM ===== -->
+            <div class="section">
+                <div class="section-title">Проверка аккаунта Instagram</div>
+                <div class="alert alert-blue">
+                    Токен сохранён в формате <b>username:password</b>.<br>
+                    Нажми «Проверить подключение» — бот попробует войти в аккаунт.<br><br>
+                    ⚠️ Если Instagram запросит подтверждение — войди вручную в браузере с того же IP и повтори тест.
+                </div>
+            </div>
+
+            {% else %}
+            <!-- ===== ДРУГИЕ ПЛАТФОРМЫ ===== -->
+            <div class="section">
+                <div class="section-title">Авторизация</div>
+                <div class="alert alert-blue">
+                    Для платформы <b>{{ bot.platform }}</b> авторизация выполняется через токен.<br>
+                    Токен уже сохранён — можно переходить к тесту.
+                </div>
+            </div>
+            {% endif %}
+
+            <hr class="divider">
+
+            <!-- Тест подключения -->
+            <div class="section">
+                <div class="section-title">Тест подключения</div>
+                <div class="actions">
+                    <form method="post" action="/bots/auth/{{ bot.id }}/test">
+                        <button type="submit" class="btn btn-gray">🔌 Проверить подключение</button>
+                    </form>
+                    {% if bot.status == 'отключён' %}
+                    <span style="font-size:13px;color:#1a7f4b;">✓ Подключение активно</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Кнопка перехода к настройкам -->
+            <a href="/bots/edit/{{ bot.id }}?tab=settings" class="next-btn">
+                Авторизация пройдена — перейти к Настройкам → Шаг 4
+            </a>
+            <a href="/bots" class="skip-link">Пропустить — настрою позже</a>
+
+        </div>
+    </div>
+</div>
+</body>
+</html>

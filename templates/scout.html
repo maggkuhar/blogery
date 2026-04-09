@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Разведчик — Внешний трафик</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #eef7f1; color: #222; }
+
+        .page { padding: 24px; max-width: 1280px; margin: 0 auto; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .page-title { font-size: 20px; font-weight: bold; }
+
+        /* Подвкладки */
+        .subtabs { background: #f0f0f0; display: flex; border-bottom: 1px solid #ddd; padding: 0 24px; }
+        .subtabs button { padding: 12px 24px; background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; font-size: 14px; color: #666; }
+        .subtabs button.active { color: #111; border-bottom: 3px solid #27ae60; font-weight: bold; }
+        .section { display: none; padding: 24px; }
+        .section.active { display: block; }
+
+        /* Форма задачи */
+        .task-form { background: #fff; border-radius: 12px; padding: 28px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); margin-bottom: 28px; }
+        .task-form h2 { font-size: 16px; font-weight: bold; margin-bottom: 20px; color: #333; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        label.field-label { display: block; font-size: 12px; font-weight: bold; color: #555; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        input[type=text], input[type=number] { width: 100%; padding: 10px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; outline: none; }
+        input:focus { border-color: #27ae60; }
+        textarea { width: 100%; padding: 10px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; resize: none; height: 70px; outline: none; }
+        textarea:focus { border-color: #27ae60; }
+
+        /* Чекбокс-группы платформ */
+        .platform-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+        .platform-group { background: #f8f8f8; border-radius: 8px; padding: 14px; }
+        .platform-group-title { font-size: 11px; font-weight: bold; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .check-item { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 13px; cursor: pointer; }
+        .check-item input { width: 15px; height: 15px; cursor: pointer; accent-color: #27ae60; }
+
+        .topics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px; }
+        .regions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 6px; }
+        .contacts-types { display: flex; flex-wrap: wrap; gap: 8px; }
+        .badge-check { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #f0f0f0; border-radius: 20px; font-size: 13px; cursor: pointer; transition: background 0.15s; }
+        .badge-check:hover { background: #e0e0e0; }
+        .badge-check input { accent-color: #27ae60; }
+
+        .btn { padding: 10px 24px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: bold; text-decoration: none; display: inline-block; }
+        .btn-green { background: #27ae60; color: #fff; }
+        .btn-gray { background: #888; color: #fff; }
+        .btn-red { background: #e74c3c; color: #fff; }
+        .btn-sm { padding: 5px 12px; font-size: 12px; }
+
+        /* Задачи список */
+        .tasks-list { display: grid; gap: 12px; margin-bottom: 28px; }
+        .task-card { background: #fff; border-radius: 10px; padding: 18px 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); display: flex; justify-content: space-between; align-items: center; }
+        .task-info { flex: 1; }
+        .task-title { font-size: 15px; font-weight: bold; margin-bottom: 4px; }
+        .task-meta { font-size: 12px; color: #888; }
+        .task-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+        .tag { background: #e8f5e9; color: #2e7d32; font-size: 11px; padding: 2px 8px; border-radius: 10px; }
+        .tag-platform { background: #e3f2fd; color: #1565c0; }
+        .tag-region { background: #fce4ec; color: #880e4f; }
+        .status-badge { padding: 3px 10px; border-radius: 10px; font-size: 12px; font-weight: bold; }
+        .status-ожидает { background: #fff3cd; color: #856404; }
+        .status-выполняется { background: #d4edda; color: #155724; }
+        .status-завершена { background: #cce5ff; color: #004085; }
+
+        /* Таблица контактов */
+        .filter-bar { background: #fff; border-radius: 10px; padding: 16px 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); margin-bottom: 20px; display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+        .filter-bar select, .filter-bar input { padding: 8px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 13px; outline: none; }
+        .filter-bar select:focus, .filter-bar input:focus { border-color: #27ae60; }
+        table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+        th { background: #f5f5f5; padding: 12px 14px; text-align: left; font-size: 12px; text-transform: uppercase; color: #888; letter-spacing: 0.5px; }
+        td { padding: 12px 14px; border-bottom: 1px solid #f5f5f5; font-size: 13px; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #fafffe; }
+        .empty { text-align: center; padding: 48px; color: #aaa; }
+        .select-all { font-size: 12px; color: #27ae60; cursor: pointer; text-decoration: underline; }
+    </style>
+</head>
+<body>
+{% include '_nav.html' %}
+
+<div class="subtabs">
+    <button onclick="switchTab('tasks',this)" class="active">Задачи поиска</button>
+    <button onclick="switchTab('contacts',this)">База контактов ({{ contacts|length }})</button>
+</div>
+
+<!-- ВКЛАДКА 1: Задачи -->
+<div class="section active" id="tab-tasks">
+    <div style="max-width:1200px;margin:0 auto;">
+
+        <!-- Форма новой задачи -->
+        <div class="task-form">
+            <h2>🔍 Новая задача разведчика</h2>
+            <form method="post" action="/scout/add-task">
+
+                <div style="margin-bottom:20px;">
+                    <label class="field-label">Название задачи *</label>
+                    <input type="text" name="title" placeholder="Например: Саморазвитие — Telegram каналы — Москва" required>
+                </div>
+
+                <!-- Платформы -->
+                <div style="margin-bottom:20px;">
+                    <label class="field-label">Платформы для поиска <span class="select-all" onclick="selectAll('platform')">выбрать все</span></label>
+                    <div class="platform-groups">
+                        {% for group_name, platforms in scout_platforms.items() %}
+                        <div class="platform-group">
+                            <div class="platform-group-title">{{ group_name }}</div>
+                            {% for p in platforms %}
+                            <label class="check-item">
+                                <input type="checkbox" name="platforms" value="{{ p }}" class="cb-platform"> {{ p }}
+                            </label>
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <!-- Тематики -->
+                    <div>
+                        <label class="field-label">Тематики <span class="select-all" onclick="selectAll('topic')">выбрать все</span></label>
+                        <div class="topics-grid">
+                            {% for t in scout_topics %}
+                            <label class="check-item">
+                                <input type="checkbox" name="topics" value="{{ t }}" class="cb-topic"> {{ t }}
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Регионы и контакты -->
+                    <div>
+                        <div style="margin-bottom:20px;">
+                            <label class="field-label">Регионы</label>
+                            <div class="regions-grid">
+                                {% for r in scout_regions %}
+                                <label class="check-item">
+                                    <input type="checkbox" name="regions" value="{{ r }}"> {{ r }}
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom:20px;">
+                            <label class="field-label">Что собирать</label>
+                            <div class="contacts-types">
+                                {% for c in scout_contact_types %}
+                                <label class="badge-check">
+                                    <input type="checkbox" name="contact_types" value="{{ c }}" {% if c == 'Email' %}checked{% endif %}> {{ c }}
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom:20px;">
+                            <label class="field-label">Ключевые слова (через запятую)</label>
+                            <input type="text" name="keywords" placeholder="саморазвитие, личностный рост, психология">
+                        </div>
+
+                        <div>
+                            <label class="field-label">Заметки</label>
+                            <textarea name="notes" placeholder="Дополнительные условия поиска..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Стратегия -->
+                <div style="margin-top:24px;background:#f8fffe;border:2px solid #e0f5ec;border-radius:10px;padding:20px;">
+                    <div style="font-size:13px;font-weight:bold;color:#1a7f4b;margin-bottom:16px;">🎯 Стратегия — что делать с найденными контактами</div>
+                    <div class="form-grid">
+                        <div>
+                            <label class="field-label">Точка входа (как зайти)</label>
+                            <select name="entry_point" style="width:100%;padding:10px 12px;border:2px solid #e0e0e0;border-radius:8px;font-size:14px;outline:none;">
+                                <option value="">— выбрать стратегию входа —</option>
+                                {% for platform, entry in scout_entry_points.items() %}
+                                <option value="{{ entry }}">{{ platform }}: {{ entry }}</option>
+                                {% endfor %}
+                                <option value="Универсальный: попробовать все каналы">Универсальный: попробовать все каналы</option>
+                            </select>
+                            <div style="font-size:11px;color:#aaa;margin-top:4px;">С какой стороны зайти к контакту</div>
+                        </div>
+                        <div>
+                            <label class="field-label">Что предложить</label>
+                            <select name="offer_rules" style="width:100%;padding:10px 12px;border:2px solid #e0e0e0;border-radius:8px;font-size:14px;outline:none;">
+                                <option value="">— выбрать предложение —</option>
+                                {% for offer in scout_offers %}
+                                <option value="{{ offer }}">{{ offer }}</option>
+                                {% endfor %}
+                            </select>
+                            <div style="font-size:11px;color:#aaa;margin-top:4px;">Какой продукт/услугу предложить этой аудитории</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top:24px;display:flex;gap:12px;">
+                    <button type="submit" class="btn btn-green">Создать задачу</button>
+                    <button type="reset" class="btn btn-gray">Сбросить</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Список задач -->
+        {% if tasks %}
+        <h2 style="font-size:16px;font-weight:bold;margin-bottom:16px;">Задачи ({{ tasks|length }})</h2>
+        <div class="tasks-list">
+            {% for t in tasks %}
+            <div class="task-card">
+                <div class="task-info">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+                        <div class="task-title">{{ t.title }}</div>
+                        <span class="status-badge status-{{ t.status }}">{{ t.status }}</span>
+                    </div>
+                    <div class="task-meta">{{ t.created_at[:16] }} · найдено: {{ t.found_count }}</div>
+                    <div class="task-tags">
+                        {% if t.platforms %}{% for p in t.platforms.split(',') %}<span class="tag tag-platform">{{ p.strip() }}</span>{% endfor %}{% endif %}
+                        {% if t.topics %}{% for top in t.topics.split(',')[:3] %}<span class="tag">{{ top.strip() }}</span>{% endfor %}{% endif %}
+                        {% if t.regions %}{% for r in t.regions.split(',') %}<span class="tag tag-region">{{ r.strip() }}</span>{% endfor %}{% endif %}
+                    </div>
+                    {% if t.keywords %}<div style="font-size:12px;color:#aaa;margin-top:4px;">🔑 {{ t.keywords }}</div>{% endif %}
+                    {% if t.entry_point or t.offer_rules %}
+                    <div style="display:flex;gap:12px;margin-top:6px;flex-wrap:wrap;">
+                        {% if t.entry_point %}<div style="font-size:12px;background:#e8f5e9;color:#2e7d32;padding:3px 10px;border-radius:10px;">🚪 {{ t.entry_point }}</div>{% endif %}
+                        {% if t.offer_rules %}<div style="font-size:12px;background:#e3f2fd;color:#1565c0;padding:3px 10px;border-radius:10px;">💼 {{ t.offer_rules }}</div>{% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                <div style="display:flex;gap:8px;flex-shrink:0;margin-left:16px;">
+                    <form method="post" action="/scout/delete-task/{{ t.id }}" onsubmit="return confirm('Удалить задачу?')">
+                        <button type="submit" class="btn btn-red btn-sm">🗑</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty">Задач пока нет. Создайте первую задачу выше.</div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ВКЛАДКА 2: База контактов -->
+<div class="section" id="tab-contacts">
+    <div style="max-width:1200px;margin:0 auto;">
+
+        <!-- Фильтры -->
+        <form method="get" action="/scout" class="filter-bar">
+            <div>
+                <div style="font-size:11px;color:#888;margin-bottom:4px;">Тематика</div>
+                <select name="topic">
+                    <option value="">Все тематики</option>
+                    {% for t in scout_topics %}
+                    <option value="{{ t }}" {% if filters.topic == t %}selected{% endif %}>{{ t }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <div style="font-size:11px;color:#888;margin-bottom:4px;">Платформа</div>
+                <select name="platform">
+                    <option value="">Все платформы</option>
+                    {% for p in all_platforms %}
+                    <option value="{{ p }}" {% if filters.platform == p %}selected{% endif %}>{{ p }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <div style="font-size:11px;color:#888;margin-bottom:4px;">Статус</div>
+                <select name="status">
+                    <option value="">Все</option>
+                    <option value="новый" {% if filters.status == 'новый' %}selected{% endif %}>Новый</option>
+                    <option value="отправлено" {% if filters.status == 'отправлено' %}selected{% endif %}>Отправлено</option>
+                    <option value="ответил" {% if filters.status == 'ответил' %}selected{% endif %}>Ответил</option>
+                    <option value="отказ" {% if filters.status == 'отказ' %}selected{% endif %}>Отказ</option>
+                </select>
+            </div>
+            <div>
+                <div style="font-size:11px;color:#888;margin-bottom:4px;">Рассылка</div>
+                <select name="mailed">
+                    <option value="">Все</option>
+                    <option value="0" {% if filters.mailed == '0' %}selected{% endif %}>Не отправлялась</option>
+                    <option value="1" {% if filters.mailed == '1' %}selected{% endif %}>Уже отправлена</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-green btn-sm">Применить</button>
+            <a href="/scout?tab=contacts" class="btn btn-gray btn-sm" onclick="switchTab('contacts',document.querySelectorAll('.subtabs button')[1])">Сбросить</a>
+        </form>
+
+        <!-- Таблица -->
+        {% if contacts %}
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Контакт</th>
+                    <th>Источник</th>
+                    <th>Описание</th>
+                    <th>Аудитория</th>
+                    <th>Точка входа</th>
+                    <th>Что предложить</th>
+                    <th>Статус</th>
+                    <th>Рассылка</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in contacts %}
+                <tr>
+                    <td style="color:#aaa;">{{ c.id }}</td>
+                    <td>
+                        {% if c.email %}<div style="font-weight:bold;">✉️ {{ c.email }}</div>{% endif %}
+                        {% if c.phone %}<div style="font-weight:bold;">📞 {{ c.phone }}</div>{% endif %}
+                        {% if c.telegram %}<div style="font-weight:bold;">💬 {{ c.telegram }}</div>{% endif %}
+                        {% if c.contact_url %}<div style="font-size:11px;"><a href="{{ c.contact_url }}" target="_blank" style="color:#27ae60;">ссылка →</a></div>{% endif %}
+                    </td>
+                    <td>
+                        <div style="font-weight:bold;font-size:13px;">{{ c.name or '—' }}</div>
+                        <span class="tag tag-platform" style="margin-top:3px;display:inline-block;">{{ c.source_platform or '—' }}</span>
+                        {% if c.source_url %}<div style="font-size:11px;margin-top:2px;"><a href="{{ c.source_url }}" target="_blank" style="color:#27ae60;">{{ c.source_name or 'открыть' }}</a></div>{% endif %}
+                        {% if c.region %}<div style="font-size:11px;color:#aaa;">📍 {{ c.region }}</div>{% endif %}
+                    </td>
+                    <td style="max-width:180px;">
+                        <div style="font-size:12px;color:#444;line-height:1.4;">{{ c.description or '—' }}</div>
+                        {% if c.topic %}<span class="tag" style="margin-top:3px;display:inline-block;">{{ c.topic }}</span>{% endif %}
+                    </td>
+                    <td style="text-align:center;">
+                        {% if c.audience_size %}<div style="font-weight:bold;font-size:14px;">{{ "{:,}".format(c.audience_size) }}</div>{% endif %}
+                        {% if c.audience_topic %}<div style="font-size:11px;color:#888;">{{ c.audience_topic }}</div>{% endif %}
+                    </td>
+                    <td style="font-size:12px;color:#555;">{{ c.entry_point or '—' }}</td>
+                    <td>
+                        {% if c.offer %}
+                        <span style="background:#e3f2fd;color:#1565c0;font-size:11px;padding:3px 8px;border-radius:8px;">{{ c.offer }}</span>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td><span class="status-badge status-{{ c.status }}">{{ c.status }}</span></td>
+                    <td>{% if c.mailed %}<span style="color:#27ae60;font-size:13px;">✓</span>{% else %}<span style="color:#aaa;">—</span>{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty">
+            <div style="font-size:40px;margin-bottom:16px;">📭</div>
+            <div>Контактов пока нет.</div>
+            <div style="font-size:13px;margin-top:8px;color:#bbb;">Создайте задачу разведчика — бот заполнит базу автоматически.</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function switchTab(tab, btn) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.subtabs button').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    btn.classList.add('active');
+}
+function selectAll(cls) {
+    document.querySelectorAll('.cb-' + cls).forEach(cb => cb.checked = true);
+}
+</script>
+</body>
+</html>

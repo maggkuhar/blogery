@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Создать бота — Внешний трафик</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #eef7f1; color: #222; }
+
+        .subtabs { background: #f0f0f0; display: flex; border-bottom: 1px solid #ddd; padding: 0 24px; }
+        .subtabs a { padding: 12px 24px; text-decoration: none; font-size: 14px; color: #666; border-bottom: 3px solid transparent; display: block; }
+        .subtabs a.active { color: #111; border-bottom: 3px solid #27ae60; font-weight: bold; }
+        .subtabs a:hover { color: #111; }
+
+        .page { padding: 32px 24px; max-width: 1200px; margin: 0 auto; }
+        .page-title { font-size: 22px; font-weight: bold; margin-bottom: 8px; }
+        .page-sub { font-size: 14px; color: #777; margin-bottom: 32px; }
+
+        .templates-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+        .tmpl-card { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-top: 4px solid #ccc; transition: transform 0.15s, box-shadow 0.15s; }
+        .tmpl-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+        .tmpl-header { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+        .tmpl-icon { font-size: 36px; }
+        .tmpl-name { font-size: 19px; font-weight: bold; }
+        .tmpl-desc { font-size: 13px; color: #555; line-height: 1.6; margin-bottom: 12px; }
+        .tmpl-use { font-size: 12px; color: #888; background: #f8f8f8; border-radius: 6px; padding: 8px 12px; margin-bottom: 18px; border-left: 3px solid #ddd; }
+        .tmpl-use b { color: #555; }
+        .btn-create { display: block; text-align: center; padding: 11px; border-radius: 8px; color: #fff; text-decoration: none; font-size: 14px; font-weight: bold; transition: opacity 0.2s; }
+        .btn-create:hover { opacity: 0.88; }
+    </style>
+</head>
+<body>
+{% include '_nav.html' %}
+
+<div class="subtabs">
+    <a href="/bots">Мои боты</a>
+    <a href="/bots/create" class="active">+ Создать бота</a>
+</div>
+
+<div class="page">
+    <div class="page-title">Создать бота — 4 шага</div>
+    <div class="page-sub">
+        <b>Шаг 1.</b> Выбери шаблон &nbsp;→&nbsp;
+        <b>Шаг 2.</b> Внеси данные &nbsp;→&nbsp;
+        <b>Шаг 3.</b> Авторизация &nbsp;→&nbsp;
+        <b>Шаг 4.</b> Настройки и запуск
+    </div>
+
+    <div style="background:#e8f5ee;border:1px solid #b2dfcc;border-radius:10px;padding:14px 20px;margin-bottom:28px;font-size:14px;color:#1a5c35;">
+        <b>Шаг 1 из 4 — Выбор шаблона.</b> Выбери тип бота под свою задачу. Каждый шаблон — готовый инструмент со своей логикой работы.
+    </div>
+
+    <div class="templates-grid">
+        {% for t in templates %}
+        <div class="tmpl-card" style="border-top-color: {{ t.color }};">
+            <div class="tmpl-header">
+                <div class="tmpl-icon">{{ t.icon }}</div>
+                <div class="tmpl-name">{{ t.name }}</div>
+            </div>
+            <div class="tmpl-desc">{{ t.description }}</div>
+            <div class="tmpl-use"><b>Когда нужен:</b> {{ t.use_case }}</div>
+            <a href="/bots/from-template/{{ t.id }}" class="btn-create" style="background: {{ t.color }};">
+                Выбрать {{ t.name }}а → Шаг 2
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+</body>
+</html>
