@@ -21,9 +21,11 @@
 
         /* Подвкладки */
         .subtabs { background: #f0f0f0; display: flex; border-bottom: 1px solid #ddd; padding: 0 24px; }
-        .subtabs button { padding: 12px 24px; background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; font-size: 14px; color: #666; }
-        .subtabs button.active { color: #111; border-bottom: 3px solid #27ae60; font-weight: bold; }
-        .subtabs button:hover { color: #111; }
+        .subtab-btn { padding: 12px 24px; background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; font-size: 14px; color: #666; transition: color 0.15s; }
+        .subtab-btn:hover { color: #111; }
+        .subtab-btn.active { color: #111; border-bottom: 3px solid #27ae60; font-weight: bold; }
+        .subtab-link { padding: 12px 24px; text-decoration: none; font-size: 14px; color: #666; border-bottom: 3px solid transparent; display: flex; align-items: center; }
+        .subtab-link:hover { color: #111; }
         .section { display: none; padding: 24px; }
         .section.active { display: block; }
 
@@ -109,14 +111,15 @@
 {% include '_nav.html' %}
 
 <div style="background:#f0f0f0;display:flex;border-bottom:1px solid #ddd;padding:0 24px;">
-    <button onclick="switchTab('tasks',this)" class="subtab-btn active" style="padding:12px 24px;background:none;border:none;border-bottom:3px solid #27ae60;cursor:pointer;font-size:14px;font-weight:bold;color:#111;">Платформы</button>
-    <button onclick="switchTab('manage',this)" class="subtab-btn" style="padding:12px 24px;background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;font-size:14px;color:#666;">Мои боты</button>
-    <a href="/templates" style="padding:12px 24px;text-decoration:none;font-size:14px;color:#666;display:flex;align-items:center;">Шаблоны сообщений</a>
-    <a href="/bots/create" style="padding:12px 24px;text-decoration:none;font-size:14px;color:#27ae60;font-weight:bold;display:flex;align-items:center;margin-left:auto;">+ Создать бота</a>
+    <button onclick="switchTab('connect',this)" class="subtab-btn active" data-tab="connect">Создать АккБота</button>
+    <button onclick="switchTab('manage',this)" class="subtab-btn" data-tab="manage">Мои АккБоты</button>
+    <a href="/templates" class="subtab-link">Шаблоны</a>
+    <a href="/bots/create" class="subtab-link">Подключить ИИ-агента</a>
+    <button onclick="switchTab('tasks',this)" class="subtab-btn" data-tab="tasks">Платформы</button>
 </div>
 
 <!-- ВКЛАДКА 1: Задания по соцсетям -->
-<div class="section active" id="tab-tasks">
+<div class="section" id="tab-tasks">
     <div class="soc-grid">
 
         {% set soc_platforms = [
@@ -277,13 +280,76 @@
     </div>
 </div>
 
+<!-- ВКЛАДКА 3: Подключить бота -->
+<div class="section active" id="tab-connect">
+    <div style="max-width:600px;margin:0 auto;">
+
+        <div style="background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,0.09);overflow:hidden;margin-bottom:24px;">
+            <div style="padding:24px 28px;border-bottom:1px solid #f0f0f0;">
+                <h2 style="font-size:18px;font-weight:bold;margin-bottom:6px;">Подключить готового бота</h2>
+                <p style="font-size:13px;color:#888;">Уже есть бот? Внеси данные — пропустим выбор шаблона и сразу перейдём к авторизации и настройкам.</p>
+            </div>
+            <div style="padding:28px;">
+                <form method="post" action="/bots/connect">
+
+                    <div style="margin-bottom:16px;">
+                        <label style="display:block;font-size:13px;color:#555;margin-bottom:6px;">Название бота</label>
+                        <input type="text" name="name" placeholder="Например: Разведчик Instagram" required style="width:100%;padding:10px 14px;border:1px solid #ccc;border-radius:8px;font-size:14px;">
+                    </div>
+
+                    <div style="margin-bottom:16px;">
+                        <label style="display:block;font-size:13px;color:#555;margin-bottom:6px;">Платформа</label>
+                        <select name="platform" required style="width:100%;padding:10px 14px;border:1px solid #ccc;border-radius:8px;font-size:14px;background:#fff;">
+                            <option value="">— выбери платформу —</option>
+                            {% for p in platforms %}
+                            <option value="{{ p }}">{{ p }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom:16px;">
+                        <label style="display:block;font-size:13px;color:#555;margin-bottom:6px;">Роль бота</label>
+                        <select name="role" required style="width:100%;padding:10px 14px;border:1px solid #ccc;border-radius:8px;font-size:14px;background:#fff;">
+                            <option value="">— выбери роль —</option>
+                            <option value="разведчик">Разведчик — поиск блогеров и контактов</option>
+                            <option value="рассыльщик">Рассыльщик — отправка сообщений</option>
+                            <option value="парсер">Парсер — сбор данных</option>
+                            <option value="постер">Постер — публикация контента</option>
+                            <option value="комментатор">Комментатор — комментарии и лайки</option>
+                            <option value="инвайтер">Инвайтер — приглашения в группы</option>
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom:24px;">
+                        <label style="display:block;font-size:13px;color:#555;margin-bottom:6px;">Токен / API ключ</label>
+                        <input type="text" name="account" placeholder="Вставь токен или api_id:api_hash:телефон" style="width:100%;padding:10px 14px;border:1px solid #ccc;border-radius:8px;font-size:14px;">
+                        <div style="font-size:11px;color:#aaa;margin-top:5px;">Формат зависит от платформы. Можно заполнить позже на шаге авторизации.</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-green" style="width:100%;padding:13px;font-size:15px;">Подключить → перейти к авторизации</button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+
 <script>
 function switchTab(tab, btn) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    document.querySelectorAll('.subtabs button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.subtab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('tab-' + tab).classList.add('active');
-    btn.classList.add('active');
+    if (btn) btn.classList.add('active');
 }
+
+// Открыть вкладку из URL параметра ?tab=
+(function() {
+    const urlTab = new URLSearchParams(window.location.search).get('tab');
+    if (urlTab) {
+        const btn = document.querySelector(`.subtab-btn[data-tab="${urlTab}"]`);
+        switchTab(urlTab, btn);
+    }
+})();
 
 const botState = {};
 function toggleBot(bot) {

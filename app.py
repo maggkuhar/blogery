@@ -246,6 +246,20 @@ BOT_TEMPLATES = [
 def bots_create():
     return render_template("bot_create.html", templates=BOT_TEMPLATES, tab="bots")
 
+@app.route("/bots/connect", methods=["POST"])
+def bots_connect():
+    name    = request.form.get("name", "").strip()
+    platform = request.form.get("platform", "").strip()
+    role    = request.form.get("role", "").strip()
+    account = request.form.get("account", "").strip()
+    if not name or not platform or not role:
+        return redirect(url_for("bots"))
+    bot_id = add_bot({
+        "name": name, "platform": platform, "role": role,
+        "account": account, "status": "новый",
+    })
+    return redirect(url_for("bots_auth", bot_id=bot_id))
+
 TEMPLATE_ROLE = {
     "scout": "разведчик", "parser": "парсер", "poster": "постер",
     "commenter": "комментатор", "inviter": "инвайтер", "analyst": "аналитик",
